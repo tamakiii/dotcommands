@@ -31,8 +31,8 @@ clean:
 bin:
 	-mkdir $@
 
-bin/whisper-cli: | dependency/ggml-org/whisper.cpp/build/bin/whisper-cli
-	# ln -sf $| $@
+bin/whisper-cli: dependency/ggml-org/whisper.cpp/build/bin/whisper-cli | bin
+	ln -sf $$(realpath --relative-to=bin $<) $@
 
 dependency/ggml-org/whisper.cpp/build: dependency/ggml-org/whisper.cpp/build/bin/whisper-cli | dependency/ggml-org/whisper.cpp
 	(cd $| && cmake -B build)
