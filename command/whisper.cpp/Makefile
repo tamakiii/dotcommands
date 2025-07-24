@@ -1,4 +1,4 @@
-.PHONY: help setup teardown
+.PHONY: help setup teardown download download-ggml build clean
 
 help:
 	@cat $(firstword $(MAKEFILE_LIST))
@@ -10,6 +10,35 @@ setup: \
 
 teardown:
 	rm -rf dependency
+
+download: \
+	download-ggml
+
+download-ggml: | dependency/ggml-org/whisper.cpp
+	# (cd $| && sh ./models/download-ggml-model.sh base.en)
+	(cd $| && sh ./models/download-ggml-model.sh --help)
+
+build: \
+	dependency/ggml-org/whisper.cpp/build \
+	dependency/ggml-org/whisper.cpp/build/bin/whisper-cli \
+	bin \
+	bin/whisper-cli
+
+clean:
+	rm -rf dependency/ggml-org/whisper.cpp/build/bin/whisper-cli
+	rm -rf dependency/ggml-org/whisper.cpp/build
+
+bin:
+	-mkdir $@
+
+bin/whisper-cli: | dependency/ggml-org/whisper.cpp/build/bin/whisper-cli
+	# ln -sf $| $@
+
+dependency/ggml-org/whisper.cpp/build: dependency/ggml-org/whisper.cpp/build/bin/whisper-cli | dependency/ggml-org/whisper.cpp
+	(cd $| && cmake -B build)
+
+dependency/ggml-org/whisper.cpp/build/bin/whisper-cli: | dependency/ggml-org/whisper.cpp
+	(cd $| && cmake --build build -j --config Release)
 
 dependency:
 	-mkdir $@
