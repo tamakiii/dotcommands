@@ -38,6 +38,12 @@ dist/wav/%.mp3.wav: dist/mp3/%.mp3
 	ffmpeg -i $< -ar 16000 -ac 1 -c:a pcm_s16le $@
 
 MODEL := ggml-large-v3-turbo.bin
+LANGUAGE := auto
 
 dist/transcript/%.wav.txt: | dependency/ggml-org/whisper.cpp
-	bin/whisper-cli -m $|/models/$(MODEL) -f dist/wav/$(patsubst dist/transcript/%.txt,%,$@) > $@
+	bin/whisper-cli \
+		--model $|/models/$(MODEL) \
+		--file dist/wav/$(patsubst dist/transcript/%.txt,%,$@) \
+		--print-progress \
+		--language $(LANGUAGE) \
+		> $@
