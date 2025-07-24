@@ -29,3 +29,6 @@ dist/mp3:
 
 dist/wav:
 	-mkdir $@
+
+dist/wav/%.wav:
+	echo $@
