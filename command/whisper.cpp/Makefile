@@ -13,9 +13,11 @@ independ:
 
 setup: \
 	dist \
-	dist/mp3
+	dist/mp3 \
+	dist/wav
 
 teardown:
+	rm -rf dist/wav
 	rm -rf dist/mp3
 	rm -rf dist
 
@@ -23,4 +25,7 @@ dist:
 	-mkdir $@
 
 dist/mp3:
+	-mkdir $@
+
+dist/wav:
 	-mkdir $@
