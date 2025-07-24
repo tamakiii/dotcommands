@@ -40,8 +40,8 @@ dist/wav/%.mp3.wav: dist/mp3/%.mp3
 MODEL := ggml-large-v3-turbo.bin
 
 dist/transcript/%.wav: | dependency/ggml-org/whisper.cpp
-	# 1. Convert % part of $@ from dist/transcript/fukabori-131.mp3.wav to fukabori-131.mp3.wav
-	# 2. Do ls to check if dist/wav/fukabori-131.mp3.wav exists
-	# 3. Do ls to check if $|/models/$(MODEL) exists
-	# Later: we'll finish this part, not now
-	# bin/whisper-cli -m $|/models/ggml-large-v3-turbo.bin -f $@
+	$(eval stem := $(patsubst dist/transcript/%.wav,%,$@))
+	@echo "Transcribing $(stem) ..."
+	@test -f dist/wav/$(stem).wav || (echo "Error: dist/wav/$(stem).wav not found" && exit 1)
+	@test -f $|/models/$(MODEL) || (echo "Error: Model $|/models/$(MODEL) not found" && exit 1)
+	bin/whisper-cli -m $|/models/$(MODEL) -f dist/wav/$(stem).wav -otxt -of $(basename $@)
