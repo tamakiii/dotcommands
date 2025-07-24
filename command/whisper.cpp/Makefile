@@ -62,4 +62,56 @@ dist/transcript/%.wav.txt: | dependency/ggml-org/whisper.cpp
 		--suppress-nst \
 		--flash-attn \
 		--print-progress \
-		> $@
+		--output-txt \
+		--output-file $(basename $@)
+
+dist/transcript/%.wav.vtt: | dependency/ggml-org/whisper.cpp
+	bin/whisper-cli \
+		--model $|/models/$(MODEL) \
+		--file dist/wav/$(patsubst dist/transcript/%.vtt,%,$@) \
+		--language $(LANGUAGE) \
+		--best-of $(BEST_OF) \
+		--beam-size $(BEAM_SIZE) \
+		--temperature $(TEMPERATURE) \
+		--word-thold $(WORD_THRESHOLD) \
+		--max-context $(MAX_CONTEXT) \
+		--threads $(THREADS) \
+		--suppress-nst \
+		--flash-attn \
+		--print-progress \
+		--output-vtt \
+		--output-file $(basename $@)
+
+dist/transcript/%.wav.srt: | dependency/ggml-org/whisper.cpp
+	bin/whisper-cli \
+		--model $|/models/$(MODEL) \
+		--file dist/wav/$(patsubst dist/transcript/%.srt,%,$@) \
+		--language $(LANGUAGE) \
+		--best-of $(BEST_OF) \
+		--beam-size $(BEAM_SIZE) \
+		--temperature $(TEMPERATURE) \
+		--word-thold $(WORD_THRESHOLD) \
+		--max-context $(MAX_CONTEXT) \
+		--threads $(THREADS) \
+		--suppress-nst \
+		--flash-attn \
+		--print-progress \
+		--output-srt \
+		--output-file $(basename $@)
+
+dist/transcript/%.wav.lrc: | dependency/ggml-org/whisper.cpp
+	bin/whisper-cli \
+		--model $|/models/$(MODEL) \
+		--file dist/wav/$(patsubst dist/transcript/%.lrc,%,$@) \
+		--language $(LANGUAGE) \
+		--best-of $(BEST_OF) \
+		--beam-size $(BEAM_SIZE) \
+		--temperature $(TEMPERATURE) \
+		--word-thold $(WORD_THRESHOLD) \
+		--max-context $(MAX_CONTEXT) \
+		--threads $(THREADS) \
+		--suppress-nst \
+		--flash-attn \
+		--print-progress \
+		--output-lrc \
+		--output-file $(basename $@)
