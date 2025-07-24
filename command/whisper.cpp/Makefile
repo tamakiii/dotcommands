@@ -40,8 +40,4 @@ dist/wav/%.mp3.wav: dist/mp3/%.mp3
 MODEL := ggml-large-v3-turbo.bin
 
 dist/transcript/%.wav.txt: | dependency/ggml-org/whisper.cpp
-	$(eval stem := $(patsubst dist/transcript/%.wav,%,$@))
-	@echo "Transcribing $(stem) ..."
-	@test -f dist/wav/$(stem).wav || (echo "Error: dist/wav/$(stem).wav not found" && exit 1)
-	@test -f $|/models/$(MODEL) || (echo "Error: Model $|/models/$(MODEL) not found" && exit 1)
-	bin/whisper-cli -m $|/models/$(MODEL) -f dist/wav/$(stem).wav -otxt -of $(basename $@)
+	bin/whisper-cli -m $|/models/$(MODEL) -f dist/wav/$(patsubst dist/transcript/%.txt,%,$@) -otxt -of $(basename $@)
