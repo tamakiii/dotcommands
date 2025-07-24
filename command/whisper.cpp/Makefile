@@ -39,7 +39,7 @@ dist/wav/%.mp3.wav: dist/mp3/%.mp3
 
 MODEL := ggml-large-v3-turbo.bin
 
-dist/transcript/%.wav: | dependency/ggml-org/whisper.cpp
+dist/transcript/%.wav.txt: | dependency/ggml-org/whisper.cpp
 	$(eval stem := $(patsubst dist/transcript/%.wav,%,$@))
 	@echo "Transcribing $(stem) ..."
 	@test -f dist/wav/$(stem).wav || (echo "Error: dist/wav/$(stem).wav not found" && exit 1)
