@@ -15,8 +15,7 @@ download: \
 	download-ggml
 
 download-ggml: | dependency/ggml-org/whisper.cpp
-	# (cd $| && sh ./models/download-ggml-model.sh base.en)
-	(cd $| && sh ./models/download-ggml-model.sh --help)
+	(cd $| && sh ./models/download-ggml-model.sh base.en)
 
 build: \
 	dependency/ggml-org/whisper.cpp/build \
