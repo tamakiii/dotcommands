@@ -40,10 +40,26 @@ dist/wav/%.mp3.wav: dist/mp3/%.mp3
 MODEL := ggml-large-v3-turbo.bin
 LANGUAGE := auto
 
+# Quality-focused transcription settings
+BEST_OF := 8
+BEAM_SIZE := 8
+TEMPERATURE := 0.1
+WORD_THRESHOLD := 0.02
+MAX_CONTEXT := 224
+THREADS := 8
+
 dist/transcript/%.wav.txt: | dependency/ggml-org/whisper.cpp
 	bin/whisper-cli \
 		--model $|/models/$(MODEL) \
 		--file dist/wav/$(patsubst dist/transcript/%.txt,%,$@) \
-		--print-progress \
 		--language $(LANGUAGE) \
+		--best-of $(BEST_OF) \
+		--beam-size $(BEAM_SIZE) \
+		--temperature $(TEMPERATURE) \
+		--word-thold $(WORD_THRESHOLD) \
+		--max-context $(MAX_CONTEXT) \
+		--threads $(THREADS) \
+		--suppress-nst \
+		--flash-attn \
+		--print-progress \
 		> $@
