@@ -30,5 +30,5 @@ dist/mp3:
 dist/wav:
 	-mkdir $@
 
-dist/wav/%.wav: dist/mp3/%.mp3
+dist/wav/%.mp3.wav: dist/mp3/%.mp3
 	ffmpeg -i $< -ar 16000 -ac 1 -c:a pcm_s16le $@
