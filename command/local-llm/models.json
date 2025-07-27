@@ -1,0 +1,33 @@
+{
+  "models": [
+    {
+      "name": "qwen2.5vl:7b",
+      "ollama.com": {
+        "size": "6.0GB",
+        "context": "125K",
+        "input": [
+          "Text",
+          "Image"
+        ]
+      }
+    },
+    {
+      "name": "gemma3:12b"
+    },
+    {
+      "name": "qwen3:8b"
+    },
+    {
+      "name": "phi3.5:3.8b"
+    },
+    {
+      "name": "phi3:3.8b"
+    },
+    {
+      "name": "llama3.2:3b"
+    },
+    {
+      "name": "phi4:latest"
+    }
+  ]
+}
