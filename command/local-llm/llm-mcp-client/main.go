@@ -248,9 +248,12 @@ func (c *MCPClient) sendRequest(method string, params interface{}) (*MCPResponse
 
 	// Read response
 	reader := bufio.NewReader(c.stdout)
-	respLine, err := reader.ReadLine()
+	respLine, isPrefix, err := reader.ReadLine()
 	if err != nil {
 		return nil, err
+	}
+	if isPrefix {
+		return nil, fmt.Errorf("response line too long")
 	}
 
 	var resp MCPResponse

@@ -6,11 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
-	"strconv"
-	"strings"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // MCP Protocol structures
