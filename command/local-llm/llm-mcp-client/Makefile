@@ -1,3 +1,14 @@
+.PHONY: help setup teardown build test clean
+
+help:
+	@cat $(firstword $(MAKEFILE_LIST))
+
+setup:
+	go mod tidy
+
+teardown:
+	# TODO
+
 build:
 	go build -o ../bin/llm-mcp-client .
 
@@ -6,8 +17,3 @@ test:
 
 clean:
 	rm -f ../bin/llm-mcp-client
-
-install-deps:
-	go mod tidy
-
-.PHONY: build test clean install-deps

@@ -1,30 +1,27 @@
+.PHONY: help setup teardown build clean test mcp-server client demo
+
 SUBDIRS = mcp-random-server llm-mcp-client
+
+help:
+	@cat $(firstword $(MAKEFILE_LIST))
+
+setup:
+	$(MAKE) -C mcp-random-server setup
+	$(MAKE) -C llm-mcp-client setup
 
 build:
 	@mkdir -p bin
-	@for dir in $(SUBDIRS); do \
-		echo "Building $$dir..."; \
-		$(MAKE) -C $$dir build || exit 1; \
-	done
-
-test:
-	@for dir in $(SUBDIRS); do \
-		echo "Testing $$dir..."; \
-		$(MAKE) -C $$dir test || exit 1; \
-	done
+	$(MAKE) -C mcp-random-server build
+	$(MAKE) -C llm-mcp-client build
 
 clean:
-	@for dir in $(SUBDIRS); do \
-		echo "Cleaning $$dir..."; \
-		$(MAKE) -C $$dir clean; \
-	done
+	$(MAKE) -C mcp-random-server clean
+	$(MAKE) -C llm-mcp-client clean
 	@rm -rf bin
 
-install-deps:
-	@for dir in $(SUBDIRS); do \
-		echo "Installing dependencies for $$dir..."; \
-		$(MAKE) -C $$dir install-deps || exit 1; \
-	done
+test:
+	$(MAKE) -C mcp-random-server test
+	$(MAKE) -C llm-mcp-client test
 
 # Individual component targets
 mcp-server:
@@ -38,5 +35,3 @@ demo: build
 	@echo "Starting demo..."
 	@echo "Make sure Ollama is running and gemma3:12b is available"
 	@echo "Run: ./bin/llm-mcp-client ./bin/mcp-random-server gemma3:12b"
-
-.PHONY: build test clean install-deps mcp-server client demo
