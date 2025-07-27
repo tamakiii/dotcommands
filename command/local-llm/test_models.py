@@ -1,6 +1,7 @@
 import subprocess
 import json
 import time
+import os
 
 def query_ollama(model, prompt):
     start_time = time.time()
@@ -27,7 +28,17 @@ test_cases = [
     "Extract key information from this agent conversation and format as JSON: 'User asked to implement login. Agent created auth.py with bcrypt hashing.'"
 ]
 
-models = ['llama3.1:8b', 'qwen2.5:7b', 'mistral:7b']
+def load_preferred_models():
+    """Load models from preferred-models.json"""
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    json_path = os.path.join(script_dir, 'preferred-models.json')
+    
+    with open(json_path, 'r') as f:
+        data = json.load(f)
+    
+    return [model['name'] for model in data['models']]
+
+models = load_preferred_models()
 
 for prompt in test_cases:
     print(f"\n=== Testing: {prompt[:50]}... ===")
