@@ -1,0 +1,156 @@
+$ python3 test_models.py
+
+=== Testing: Rate this code quality from 1-10 and explain: def ... ===
+
+qwen2.5vl:7b (26.0s):
+The code snippet you've provided is a simple Python function named `calc` that takes a single argument `x` and returns the result of the expression `x*2+1`. Here's a breakdown of the code quality base...
+
+gemma3:12b (37.3s):
+Okay, let's rate the code quality of `def calc(x): return x*2+1` on a scale of 1-10, and I'll explain my reasoning.
+
+**Rating: 8/10**
+
+Here's a breakdown of why I gave it that score:
+
+**Strengths (Why...
+
+qwen3:8b (54.4s):
+Thinking...
+Okay, let me try to figure out how to rate this code quality. The code given is a Python function called calc that takes an argument x and returns x multiplied by 2 plus 1 divided by somet...
+
+phi3.5:3.8b (11.8s):
+I would rate the provided code snippet a solid 8 out of 1ReleaseNotes. The function `calc` is well written in terms of syntax, readability, and efficiency for its purpose—it takes an input value `x`, ...
+
+phi3:3.8b (3.9s):
+I would rate the given function as a "6" for code quality. The function is simple, clear in intent (multiplies an input by two and adds one), and has good naming conventions (`calc`). However, there's...
+
+llama3.2:3b (5.8s):
+I would rate the code quality as a 6 out of 10.
+
+Here's why:
+
+**Positive aspects:**
+
+1. **Concise**: The function is very short and to the point, which makes it easy to read and understand.
+2. **Well-...
+
+phi4:latest (19.4s):
+To evaluate the quality of the provided code snippet `def calc(x): return x*2+1`, let's consider several aspects:
+
+### Code Quality Rating: 6/10
+
+Here are some points to consider:
+
+#### Positive Aspec...
+
+=== Testing: A function runs every hour and checks a log file. ... ===
+
+qwen2.5vl:7b (23.4s):
+Certainly! Below is a step-by-step guide to implement the logic for a function that runs every hour and checks a log file for the string 'ERROR'. If it finds 'ERROR', it should send an alert.
+
+### Ste...
+
+gemma3:12b (68.1s):
+Okay, here's a breakdown of the logic steps for a function that runs hourly to check a log file for "ERROR" and sends an alert when found, along with considerations for robustness and potential improv...
+
+qwen3:8b (44.2s):
+Thinking...
+Okay, let's see. The user wants a function that runs every hour to check a log file for the word 'ERROR' and send an alert if found. Hmm, first I need to outline the steps this function wo...
+
+phi3.5:3.8b (495.2s):
+Here are the logical steps to create such functionality in software or as part of a task automation process:
+
+1. Define Schedule Task Automatically (either by scheduling within existing systems like c...
+
+phi3:3.8b (11.5s):
+1. Start by setting up your environment: Ensure that you have access to the necessary tools, such as Python if using code, or whichedea methodology for pseudocode representation. Also ensure error log...
+
+llama3.2:3b (12.9s):
+**Function Logic Steps**
+
+### Function Overview
+
+The function, named `logAlertSystem`, will run every hour and check for the presence of 'ERROR' in the log file. If found, it will trigger an alert.
+
+#...
+
+phi4:latest (35.3s):
+To implement a function that runs every hour, checks a log file for the presence of 'ERROR', and sends an alert if found, you can follow these logical steps:
+
+1. **Setup Scheduling:**
+   - Use a sched...
+
+=== Testing: Extract key information from this agent conversati... ===
+
+qwen2.5vl:7b (3.9s):
+```json
+{
+  "user_request": "implement login",
+  "agent_action": "created auth.py",
+  "technology_used": "bcrypt hashing"
+}
+```...
+
+gemma3:12b (6.6s):
+```json
+{
+  "task": "Implement login",
+  "agent_action": "Created auth.py",
+  "details": "auth.py includes bcrypt hashing"
+}
+```...
+
+qwen3:8b (22.5s):
+Thinking...
+Okay, let's see. The user wants me to extract key information from the agent conversation and format it as JSON. The conversation given is: 'User asked to implement login. Agent created au...
+
+phi3.5:3.8b (5.7s):
+Here is the extracted information formatted in JSON style, based on your description of an interaction involving a user's request for implementing authentication and an agent responding by creating `a...
+
+phi3:3.8b (2.8s):
+```json
+
+{
+
+  "user_request": "implement login",
+
+  "agent_response": {
+
+    "action": "created",
+
+    "subject": "auth.py",
+
+    "method": "bcrypt hashing"
+
+  }
+
+}
+
+```...
+
+llama3.2:3b (2.6s):
+Here is the extracted key information formatted as JSON:
+
+```
+{
+  "action": "implement_login",
+  "details": {
+    "step": 1,
+    "task": "create auth.py file"
+  },
+  "outcome": "auth.py created with b...
+
+phi4:latest (4.6s):
+```json
+{
+  "UserRequest": "implement login",
+  "AgentActions": [
+    {
+      "FileCreated": "auth.py"
+    },
+    {
+      "MethodUsed": "bcrypt hashing"
+    }
+  ]
+}
+```...
