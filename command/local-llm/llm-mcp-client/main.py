@@ -9,14 +9,44 @@ using LangChain's native MCP integration for better maintainability.
 import asyncio
 import sys
 import argparse
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union, Tuple
 import subprocess
 import json
+import re
 
 from langchain_ollama import ChatOllama
-from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage, BaseMessage
 from langchain_core.tools import BaseTool
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
+
+
+class MCPToolArgs(BaseModel):
+    """Base model for MCP tool arguments"""
+    model_config = ConfigDict(extra='allow')
+
+
+class MCPRequest(BaseModel):
+    """Model for MCP JSON-RPC requests"""
+    jsonrpc: str = "2.0"
+    id: str
+    method: str
+    params: Dict[str, Any] = Field(default_factory=dict)
+
+
+class MCPResponse(BaseModel):
+    """Model for MCP JSON-RPC responses"""
+    jsonrpc: str = "2.0"
+    id: str
+    result: Optional[Dict[str, Any]] = None
+    error: Optional[Dict[str, Any]] = None
+
+
+class ToolCallResult(BaseModel):
+    """Model for tool call results"""
+    name: str
+    args: Dict[str, Any]
+    result: Optional[str] = None
+    error: Optional[str] = None
 
 
 class MCPTool(BaseTool):
@@ -24,43 +54,45 @@ class MCPTool(BaseTool):
     
     name: str
     description: str
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     
-    class Config:
-        arbitrary_types_allowed = True
-    
-    def __init__(self, name: str, description: str, mcp_server_process: subprocess.Popen, **kwargs):
+    def __init__(self, name: str, description: str, mcp_server_process: subprocess.Popen, **kwargs: Any) -> None:
         super().__init__(name=name, description=description, **kwargs)
-        self._mcp_server_process = mcp_server_process
+        self._mcp_server_process: subprocess.Popen[bytes] = mcp_server_process
     
-    def _run(self, **kwargs) -> str:
+    def _run(self, **kwargs: Any) -> str:
         """Execute the MCP tool with given parameters"""
         try:
             # Prepare MCP request
-            request = {
-                "jsonrpc": "2.0",
-                "id": f"tool_call_{self.name}",
-                "method": "tools/call",
-                "params": {
+            request: MCPRequest = MCPRequest(
+                id=f"tool_call_{self.name}",
+                method="tools/call",
+                params={
                     "name": self.name,
                     "arguments": kwargs
                 }
-            }
+            )
             
             # Send request to MCP server
-            request_line = json.dumps(request) + "\n"
-            self._mcp_server_process.stdin.write(request_line.encode())
-            self._mcp_server_process.stdin.flush()
+            request_line: str = request.model_dump_json() + "\n"
+            if self._mcp_server_process.stdin:
+                self._mcp_server_process.stdin.write(request_line.encode())
+                self._mcp_server_process.stdin.flush()
             
             # Read response
-            response_line = self._mcp_server_process.stdout.readline().decode().strip()
-            response = json.loads(response_line)
+            if self._mcp_server_process.stdout:
+                response_line: str = self._mcp_server_process.stdout.readline().decode().strip()
+                response_data: Dict[str, Any] = json.loads(response_line)
+                response: MCPResponse = MCPResponse(**response_data)
+            else:
+                return "Error: MCP server process stdout not available"
             
-            if "error" in response:
-                return f"Error: {response['error']['message']}"
+            if response.error:
+                return f"Error: {response.error.get('message', 'Unknown error')}"
             
             # Extract content from response
-            if "result" in response and "content" in response["result"]:
-                content = response["result"]["content"]
+            if response.result and "content" in response.result:
+                content: List[Dict[str, Any]] = response.result["content"]
                 if content and len(content) > 0:
                     return content[0].get("text", "No text content")
             
@@ -73,12 +105,12 @@ class MCPTool(BaseTool):
 class MCPClient:
     """Client for interacting with MCP servers"""
     
-    def __init__(self, server_path: str):
-        self.server_path = server_path
-        self.server_process: Optional[subprocess.Popen] = None
+    def __init__(self, server_path: str) -> None:
+        self.server_path: str = server_path
+        self.server_process: Optional[subprocess.Popen[bytes]] = None
         self.tools: List[MCPTool] = []
     
-    async def start_server(self):
+    async def start_server(self) -> None:
         """Start the MCP server process"""
         try:
             self.server_process = subprocess.Popen(
@@ -90,69 +122,75 @@ class MCPClient:
             )
             
             # Initialize the server
-            await self._send_request("initialize", {
+            init_params: Dict[str, Any] = {
                 "protocolVersion": "2024-11-05",
                 "capabilities": {},
                 "clientInfo": {
                     "name": "llm-mcp-client-python",
                     "version": "1.0.0"
                 }
-            })
+            }
+            await self._send_request("initialize", init_params)
             
             print(f"✓ Connected to MCP server: {self.server_path}")
             
         except Exception as e:
             raise Exception(f"Failed to start MCP server: {e}")
     
-    async def _send_request(self, method: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def _send_request(self, method: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Send a request to the MCP server"""
         if not self.server_process:
             raise Exception("MCP server not started")
         
-        request = {
-            "jsonrpc": "2.0",
-            "id": f"req_{method}",
-            "method": method,
-            "params": params or {}
-        }
+        request: MCPRequest = MCPRequest(
+            id=f"req_{method}",
+            method=method,
+            params=params or {}
+        )
         
         try:
-            request_line = json.dumps(request) + "\n"
-            self.server_process.stdin.write(request_line.encode())
-            self.server_process.stdin.flush()
+            request_line: str = request.model_dump_json() + "\n"
+            if self.server_process and self.server_process.stdin:
+                self.server_process.stdin.write(request_line.encode())
+                self.server_process.stdin.flush()
             
-            response_line = self.server_process.stdout.readline().decode().strip()
-            response = json.loads(response_line)
+            if self.server_process and self.server_process.stdout:
+                response_line: str = self.server_process.stdout.readline().decode().strip()
+                response_data: Dict[str, Any] = json.loads(response_line)
+                response: MCPResponse = MCPResponse(**response_data)
+            else:
+                raise Exception("MCP server process not available")
             
-            if "error" in response:
-                raise Exception(f"MCP error: {response['error']['message']}")
+            if response.error:
+                raise Exception(f"MCP error: {response.error.get('message', 'Unknown error')}")
             
-            return response.get("result", {})
+            return response.result or {}
             
         except Exception as e:
             raise Exception(f"Failed to communicate with MCP server: {e}")
     
-    async def discover_tools(self):
+    async def discover_tools(self) -> None:
         """Discover available tools from the MCP server"""
         try:
-            result = await self._send_request("tools/list")
-            tools_data = result.get("tools", [])
+            result: Dict[str, Any] = await self._send_request("tools/list")
+            tools_data: List[Dict[str, Any]] = result.get("tools", [])
             
             self.tools = []
             for tool_data in tools_data:
-                tool = MCPTool(
-                    name=tool_data["name"],
-                    description=tool_data.get("description", ""),
-                    mcp_server_process=self.server_process
-                )
-                self.tools.append(tool)
+                if self.server_process:
+                    tool: MCPTool = MCPTool(
+                        name=tool_data["name"],
+                        description=tool_data.get("description", ""),
+                        mcp_server_process=self.server_process
+                    )
+                    self.tools.append(tool)
             
             print(f"✓ Discovered {len(self.tools)} tools: {[t.name for t in self.tools]}")
             
         except Exception as e:
             raise Exception(f"Failed to discover tools: {e}")
     
-    def stop_server(self):
+    def stop_server(self) -> None:
         """Stop the MCP server process"""
         if self.server_process:
             self.server_process.terminate()
@@ -162,10 +200,10 @@ class MCPClient:
 class LLMChat:
     """Chat interface with LLM and MCP tool integration"""
     
-    def __init__(self, model_name: str, mcp_client: MCPClient):
-        self.llm = ChatOllama(model=model_name, temperature=0.7)
-        self.mcp_client = mcp_client
-        self.conversation_history: List[Any] = []
+    def __init__(self, model_name: str, mcp_client: MCPClient) -> None:
+        self.llm: ChatOllama = ChatOllama(model=model_name, temperature=0.7)
+        self.mcp_client: MCPClient = mcp_client
+        self.conversation_history: List[BaseMessage] = []
     
     def _create_system_message(self) -> SystemMessage:
         """Create system message with tool descriptions"""
@@ -196,42 +234,43 @@ You can use multiple tools in one response if needed. Be helpful and use tools w
     
     def _parse_tool_calls(self, response: str) -> List[Dict[str, Any]]:
         """Parse tool calls from LLM response"""
-        import re
         
         # Find all tool calls in the response
-        pattern = r'USE_TOOL:\s*(\w+)\((.*?)\)'
-        matches = re.findall(pattern, response)
+        pattern: str = r'USE_TOOL:\s*(\w+)\((.*?)\)'
+        matches: List[Tuple[str, str]] = re.findall(pattern, response)
         
-        tool_calls = []
+        tool_calls: List[Dict[str, Any]] = []
         for tool_name, args_str in matches:
             # Parse arguments
-            args = {}
+            args: Dict[str, Any] = {}
             if args_str.strip():
                 # Simple argument parsing for key=value pairs
-                arg_pairs = args_str.split(',')
+                arg_pairs: List[str] = args_str.split(',')
                 for pair in arg_pairs:
                     if '=' in pair:
-                        key, value = pair.split('=', 1)
+                        key: str
+                        value: Union[str, int, float, List[str]]
+                        key, value_str = pair.split('=', 1)
                         key = key.strip()
-                        value = value.strip()
+                        value_str = value_str.strip()
                         
                         # Remove quotes if present
-                        if value.startswith('"') and value.endswith('"'):
-                            value = value[1:-1]
-                        elif value.startswith('[') and value.endswith(']'):
+                        if value_str.startswith('"') and value_str.endswith('"'):
+                            value = value_str[1:-1]
+                        elif value_str.startswith('[') and value_str.endswith(']'):
                             # Handle array values
-                            value = value[1:-1]
-                            choices = [choice.strip().strip('"') for choice in value.split(',')]
+                            array_content: str = value_str[1:-1]
+                            choices: List[str] = [choice.strip().strip('"') for choice in array_content.split(',')]
                             value = choices
                         else:
                             # Try to convert to number
                             try:
-                                if '.' in value:
-                                    value = float(value)
+                                if '.' in value_str:
+                                    value = float(value_str)
                                 else:
-                                    value = int(value)
+                                    value = int(value_str)
                             except ValueError:
-                                pass  # Keep as string
+                                value = value_str  # Keep as string
                         
                         args[key] = value
             
@@ -298,13 +337,13 @@ You can use multiple tools in one response if needed. Be helpful and use tools w
             return response_text
 
 
-async def main():
+async def main() -> int:
     """Main function"""
-    parser = argparse.ArgumentParser(description="LLM MCP Client - Python implementation")
+    parser: argparse.ArgumentParser = argparse.ArgumentParser(description="LLM MCP Client - Python implementation")
     parser.add_argument("mcp_server_path", help="Path to the MCP server executable")
     parser.add_argument("--model", default="gemma3:12b", help="Ollama model name (default: gemma3:12b)")
     
-    args = parser.parse_args()
+    args: argparse.Namespace = parser.parse_args()
     
     print("🚀 Starting LLM MCP Client (Python + LangChain)")
     print(f"📡 MCP Server: {args.mcp_server_path}")
@@ -312,7 +351,7 @@ async def main():
     print()
     
     # Initialize MCP client
-    mcp_client = MCPClient(args.mcp_server_path)
+    mcp_client: MCPClient = MCPClient(args.mcp_server_path)
     
     try:
         # Start MCP server and discover tools
@@ -320,7 +359,7 @@ async def main():
         await mcp_client.discover_tools()
         
         # Initialize chat
-        chat = LLMChat(args.model, mcp_client)
+        chat: LLMChat = LLMChat(args.model, mcp_client)
         
         print()
         print("💬 Chat started! Type 'quit' or 'exit' to stop.")
@@ -329,7 +368,7 @@ async def main():
         # Interactive chat loop
         while True:
             try:
-                user_input = input("User: ").strip()
+                user_input: str = input("User: ").strip()
                 
                 if not user_input:
                     continue
@@ -338,7 +377,7 @@ async def main():
                     break
                 
                 print()
-                response = await chat.chat(user_input)
+                response: str = await chat.chat(user_input)
                 print(f"Assistant: {response}")
                 print()
                 
