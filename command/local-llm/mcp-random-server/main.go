@@ -6,7 +6,6 @@ import (
 	"log"
 	"math/rand"
 	"os"
-	"time"
 )
 
 // MCP Protocol structures
@@ -53,7 +52,6 @@ type ToolCallParams struct {
 
 func main() {
 	log.SetOutput(os.Stderr)
-	rand.Seed(time.Now().UnixNano())
 
 	decoder := json.NewDecoder(os.Stdin)
 	encoder := json.NewEncoder(os.Stdout)
