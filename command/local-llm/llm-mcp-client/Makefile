@@ -46,8 +46,9 @@ install:
 build: setup
 	@mkdir -p ../bin
 	@echo "#!/bin/bash" > ../bin/$(SCRIPT_NAME)
-	@echo "cd \$$(dirname \$$0)/../llm-mcp-client" >> ../bin/$(SCRIPT_NAME)
-	@echo "$(PWD)/$(PYTHON) main.py \"\$$@\"" >> ../bin/$(SCRIPT_NAME)
+	@echo "SCRIPT_DIR=\"\$$(cd \"\$$(dirname \"\$$0\")\" && pwd)\"" >> ../bin/$(SCRIPT_NAME)
+	@echo "cd \"\$$SCRIPT_DIR/../llm-mcp-client\"" >> ../bin/$(SCRIPT_NAME)
+	@echo "\"\$$SCRIPT_DIR/../llm-mcp-client/venv/bin/python\" main.py \"\$$@\"" >> ../bin/$(SCRIPT_NAME)
 	@chmod +x ../bin/$(SCRIPT_NAME)
 	@echo "✓ Executable created: ../bin/$(SCRIPT_NAME)"
 

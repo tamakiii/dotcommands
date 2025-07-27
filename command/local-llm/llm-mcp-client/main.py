@@ -24,11 +24,13 @@ class MCPTool(BaseTool):
     
     name: str
     description: str
-    mcp_server_process: subprocess.Popen
+    
+    class Config:
+        arbitrary_types_allowed = True
     
     def __init__(self, name: str, description: str, mcp_server_process: subprocess.Popen, **kwargs):
         super().__init__(name=name, description=description, **kwargs)
-        self.mcp_server_process = mcp_server_process
+        self._mcp_server_process = mcp_server_process
     
     def _run(self, **kwargs) -> str:
         """Execute the MCP tool with given parameters"""
@@ -46,11 +48,11 @@ class MCPTool(BaseTool):
             
             # Send request to MCP server
             request_line = json.dumps(request) + "\n"
-            self.mcp_server_process.stdin.write(request_line.encode())
-            self.mcp_server_process.stdin.flush()
+            self._mcp_server_process.stdin.write(request_line.encode())
+            self._mcp_server_process.stdin.flush()
             
             # Read response
-            response_line = self.mcp_server_process.stdout.readline().decode().strip()
+            response_line = self._mcp_server_process.stdout.readline().decode().strip()
             response = json.loads(response_line)
             
             if "error" in response:
