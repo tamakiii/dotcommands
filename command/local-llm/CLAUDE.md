@@ -20,11 +20,17 @@ local-llm/
 │   ├── go.mod              # Go module definition
 │   ├── Makefile            # Build configuration
 │   └── README.md           # Server documentation
-├── llm-mcp-client/          # LLM client with MCP server integration
-│   ├── main.go             # Client implementation with Ollama integration
-│   ├── go.mod              # Go module definition
+├── llm-mcp-client/          # LLM client with MCP server integration (Python + LangChain)
+│   ├── main.py             # Client implementation with LangChain and Ollama integration
+│   ├── requirements.txt    # Python dependencies
+│   ├── venv/               # Python virtual environment
 │   ├── Makefile            # Build configuration
 │   └── README.md           # Client documentation
+├── llm-mcp-go-client/       # Legacy Go implementation (preserved for reference)
+│   ├── main.go             # Original Go implementation
+│   ├── go.mod              # Go module definition
+│   ├── Makefile            # Build configuration
+│   └── README.md           # Go client documentation
 ├── examples/                # Usage examples and test scripts
 │   ├── usage-demo.sh       # Interactive demo script
 │   └── test-mcp-server.sh  # MCP server testing script
@@ -43,12 +49,13 @@ local-llm/
 
 ## Architecture Overview
 
-This project has evolved from research phase to implementation, featuring a complete MCP integration system:
+This project has evolved from research phase to production implementation, featuring a complete MCP integration system built on modern Python + LangChain architecture:
 
 1. **Model Catalog**: `preferred-models.json` maintains model specifications including size, context length, and input types from ollama.com
 2. **MCP Integration**: Full Model Context Protocol implementation enabling local LLMs to use external tools
-3. **Research Documentation**: Structured exploration of local LLM options, focusing on model selection, management tools (Ollama, LM Studio), and inference optimization
-4. **Target Integration**: Designed to integrate with existing dotcommands workbench for shell workflow automation
+3. **LangChain Foundation**: Modern Python implementation using LangChain for robust LLM orchestration and tool integration
+4. **Research Documentation**: Structured exploration of local LLM options, focusing on model selection, management tools (Ollama, LM Studio), and inference optimization
+5. **Target Integration**: Designed to integrate with existing dotcommands workbench for shell workflow automation
 
 ### MCP System Components
 
@@ -57,11 +64,13 @@ This project has evolved from research phase to implementation, featuring a comp
   - `get_random_string`: Create random strings with configurable length and character sets
   - `get_random_choice`: Pick random items from provided choice arrays
 
-- **LLM MCP Client**: Bridges local LLMs (via Ollama) with MCP servers:
-  - Connects to Ollama API for model inference
-  - Parses LLM responses for tool call requests
-  - Executes MCP server tools and provides results back to the LLM
-  - Interactive chat interface with tool integration
+- **LLM MCP Client** (Python + LangChain): Modern implementation bridging local LLMs with MCP servers:
+  - Built on LangChain's ChatOllama for robust LLM integration
+  - Native MCP protocol support with clean JSON-RPC communication
+  - Async architecture for better performance and reliability
+  - Automatic tool discovery and registration
+  - Interactive chat interface with visual feedback and error handling
+  - Easy extensibility for new model providers and MCP servers
 
 ## Key Models Under Consideration
 
@@ -74,21 +83,23 @@ The preferred models are optimized for MacBook Pro M3 Max hardware:
 
 ## Development Context
 
-This project operates within the broader dotcommands ecosystem, following Go-based modular architecture principles. The current implementation:
+This project operates within the broader dotcommands ecosystem, following modular architecture principles with a modern Python + LangChain foundation. The current implementation:
 
-- Integrates with existing shell workflows and JSON-based tool communication
-- Follows the established pattern of independent utilities with shared build processes
-- Maintains the dotcommands philosophy of lightweight, focused command-line tools
-- Provides a foundation for building more sophisticated MCP servers and LLM integrations
+- **Hybrid Architecture**: Go MCP servers + Python LangChain client for optimal performance and maintainability
+- **Shell Integration**: Seamless integration with existing shell workflows and JSON-based tool communication
+- **Modular Design**: Follows the established pattern of independent utilities with shared build processes
+- **CLI Philosophy**: Maintains the dotcommands philosophy of lightweight, focused command-line tools
+- **Extensible Foundation**: LangChain-based architecture enables easy addition of new model providers, tools, and integrations
+- **Migration Strategy**: Preserves original Go implementation as reference while adopting industry-standard Python tooling
 
 ### Build and Usage
 
 ```bash
-# Build all components
-make build
+# Quick setup and build (recommended)
+make install
 
-# Install dependencies
-make install-deps
+# Build all components individually
+make build
 
 # Test MCP server functionality
 ./examples/test-mcp-server.sh
@@ -96,13 +107,24 @@ make install-deps
 # Run interactive demo (requires Ollama + gemma3:12b)
 ./examples/usage-demo.sh
 
-# Manual usage
-./bin/llm-mcp-client ./bin/mcp-random-server gemma3:12b
+# Manual usage (absolute path required for MCP server)
+./bin/llm-mcp-client $PWD/bin/mcp-random-server --model gemma3:12b
+
+# Alternative models
+./bin/llm-mcp-client $PWD/bin/mcp-random-server --model llama3.2:3b
+./bin/llm-mcp-client $PWD/bin/mcp-random-server --model phi4:latest
 ```
 
 ### Tool Call Format
 
-The LLM client expects tool calls in this format:
+The Python LangChain client uses an improved tool call format:
+```
+USE_TOOL: get_random_number(min=1, max=100)
+USE_TOOL: get_random_string(length=8, charset=alpha)  
+USE_TOOL: get_random_choice(choices=["red", "blue", "green"])
+```
+
+**Legacy Go Client Format** (preserved for reference):
 ```
 TOOL_CALL: get_random_number(min=1, max=100)
 TOOL_CALL: get_random_string(length=8, charset=alpha)
