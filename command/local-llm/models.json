@@ -12,22 +12,65 @@
       }
     },
     {
-      "name": "gemma3:12b"
+      "name": "gemma3:12b",
+      "ollama.com": {
+        "size": "8.1GB",
+        "context": "128K",
+        "input": [
+          "Text",
+          "Image"
+        ]
+      }
     },
     {
-      "name": "qwen3:8b"
+      "name": "qwen3:8b",
+      "ollama.com": {
+        "size": "5.2GB",
+        "context": "40K",
+        "input": [
+          "Text"
+        ]
+      }
     },
     {
-      "name": "phi3.5:3.8b"
+      "name": "phi3.5:3.8b",
+      "ollama.com": {
+        "size": "2.2GB",
+        "context": "4K",
+        "input": [
+          "Text"
+        ]
+      }
     },
     {
-      "name": "phi3:3.8b"
+      "name": "phi3:3.8b",
+      "ollama.com": {
+        "size": "2.2GB",
+        "context": "128K",
+        "input": [
+          "Text"
+        ]
+      }
     },
     {
-      "name": "llama3.2:3b"
+      "name": "llama3.2:3b",
+      "ollama.com": {
+        "size": "2.0GB",
+        "context": "128K",
+        "input": [
+          "Text"
+        ]
+      }
     },
     {
-      "name": "phi4:latest"
+      "name": "phi4:latest",
+      "ollama.com": {
+        "size": "9.1GB",
+        "context": "16K",
+        "input": [
+          "Text"
+        ]
+      }
     }
   ]
 }
