@@ -30,8 +30,15 @@ mcp-server:
 client:
 	$(MAKE) -C llm-mcp-client build
 
-# Quick test of the integration
+# Quick test of the integration  
 demo: build
 	@echo "Starting demo..."
 	@echo "Make sure Ollama is running and gemma3:12b is available"
-	@echo "Run: ./bin/llm-mcp-client ./bin/mcp-random-server gemma3:12b"
+	@echo "Run: ./bin/llm-mcp-client ./bin/mcp-random-server --model gemma3:12b"
+
+# Quick start - setup and build everything
+install: setup build
+
+# Development targets
+dev-setup: setup
+	$(MAKE) -C llm-mcp-client dev-install

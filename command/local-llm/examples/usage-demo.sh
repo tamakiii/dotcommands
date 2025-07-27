@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# LLM MCP Integration Demo Script
-# This script demonstrates the integration between gemma3:12b and MCP servers
+# LLM MCP Integration Demo Script (Python + LangChain)
+# This script demonstrates the integration between local LLMs and MCP servers
 
 set -e
 
@@ -69,7 +69,7 @@ run_demo() {
     echo "- Type 'quit' to exit"
     echo
     
-    ./bin/llm-mcp-client ./bin/mcp-random-server "$model"
+    ./bin/llm-mcp-client ./bin/mcp-random-server --model "$model"
 }
 
 # Main execution
